@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+
+require "./lib/sub_string"
+
+if ARGV.size == 2
+  filename = ARGV[0]
+  target_string = ARGV[1]
+  receiver = SubString.new(filename, target_string)
+  puts "Found #{receiver.call} instances of #{target_string} in file #{filename}"
+else
+  puts "Usage: ./substr <filename> <target_string>"
+end
