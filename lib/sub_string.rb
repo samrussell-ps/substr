@@ -1,5 +1,5 @@
 class SubString
-  BLOCK_SIZE = 1024 * 1024
+  BLOCK_SIZE = 1024 * 1024 / 2
 
   attr_reader :block
   attr_reader :occurrences_of_target_string
@@ -34,9 +34,56 @@ class SubString
   #  next_chunk_from_file = file.read(amount_to_load)
   #  @block = next_chunk_from_file ? last_bit_of_block + next_chunk_from_file : nil
   #end
+
+  def load_first_block
+    @block = file.read(BLOCK_SIZE)
+    start_loader_thread
+  end
   
   def load_next_block
-    @block = file.read(BLOCK_SIZE)
+    if @block
+      Thread.pass while @loader_thread_working
+      @block = next_block_from_loader_thread
+      kick_loader_thread
+      @block
+    else
+      #load_first_block
+      #@block
+      file
+      start_loader_thread
+      Thread.pass while @loader_thread_working
+      @block = next_block_from_loader_thread
+      kick_loader_thread
+      @block
+    end
+  end
+
+  def start_loader_thread
+    @next_block = nil
+    @get_next_block = true
+    @loader_thread_working = true
+    @loader_thread = Thread.new do
+      while true
+        Thread.pass while @get_next_block == false
+        # it breaks if i don't call @file.tell... race condition?
+        block_number = @file.tell / BLOCK_SIZE
+        puts "Block number #{block_number}" if block_number % 500 == 0
+        @next_block = @file.read(BLOCK_SIZE)
+        @loader_thread_working = false
+        break unless @next_block
+        @get_next_block = false
+      end
+    end
+  end
+
+  def kick_loader_thread
+    @loader_thread_working = true
+    @get_next_block = true
+    Thread.pass
+  end
+
+  def next_block_from_loader_thread
+    @next_block
   end
 
   def handle_start_of_block
@@ -75,6 +122,7 @@ class SubString
     #end
     while index = @block.index(@target_string, skip_until)
       @occurrences_of_target_string +=1
+      #puts "found something at #{index}"
       skip_until = index + @target_string.size
     end
   end
