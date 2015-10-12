@@ -22,7 +22,8 @@ RSpec.describe SubString do
     context '1 block loaded' do
       it 'loads SubString::BLOCK_SIZE - (target_string.size - 1) bytes from file' do
         sub_string.load_next_block
-        expect{sub_string.load_next_block}.to change{fake_file.tell}.by(SubString::BLOCK_SIZE - target_string.size + 1)
+        #expect{sub_string.load_next_block}.to change{fake_file.tell}.by(SubString::BLOCK_SIZE - target_string.size + 1)
+        expect{sub_string.load_next_block}.to change{fake_file.tell}.by(SubString::BLOCK_SIZE)
       end
     end
   end
@@ -122,5 +123,19 @@ RSpec.describe SubString do
     #  expect(sub_string.string_matches?('1234567890', 0, '234')).to be false
     #  expect(sub_string.string_matches?('1234567890', 5, '890')).to be false
     #end
+  end
+
+  describe '#smaller_parts' do
+    it 'splits the string into all smaller parts' do
+      smaller_parts = sub_string.smaller_parts('abcdefg')
+      expect(smaller_parts).to eq([
+        ['a', 'bcdefg'],
+          ['ab', 'cdefg'],
+          ['abc', 'defg'],
+          ['abcd', 'efg'],
+          ['abcde', 'fg'],
+          ['abcdef', 'g']
+        ])
+    end
   end
 end
