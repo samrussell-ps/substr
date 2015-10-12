@@ -36,7 +36,11 @@ class SubString
   #end
   
   def load_next_block
-    @block = file.read(BLOCK_SIZE)
+    if @block
+      file.read(BLOCK_SIZE, @block)
+    else
+      @block = file.read(BLOCK_SIZE)
+    end
   end
 
   def handle_start_of_block
