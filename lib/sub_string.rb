@@ -42,7 +42,7 @@ class SubString
   def handle_start_of_block
     if @end_of_block_offset
       start_of_block_match = smaller_parts(@target_string)[-@end_of_block_offset][1]
-      @occurrences_of_target_string +=1 if @block.index(start_of_block_match) == 0
+      @occurrences_of_target_string +=1 if @block.rindex(start_of_block_match, @end_of_block_offset) == 0
     end
   end
 
