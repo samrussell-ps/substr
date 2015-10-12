@@ -71,6 +71,27 @@ RSpec.describe SubString do
       expect{sub_string.find_target_string_in_block}.to change{sub_string.occurrences_of_target_string}.by(2)
     end
 
+    it 'finds "he" 7 times in the string "hehehehehehehe"' do
+      sub_string.instance_variable_set(:@block, 'hehehehehehehe')
+      sub_string.instance_variable_set(:@target_string, 'he')
+
+      expect{sub_string.find_target_string_in_block}.to change{sub_string.occurrences_of_target_string}.by(7)
+    end
+
+    it 'finds "hehe" 3 times in the string "hehehehehehehe"' do
+      sub_string.instance_variable_set(:@block, 'hehehehehehehe')
+      sub_string.instance_variable_set(:@target_string, 'hehe')
+
+      expect{sub_string.find_target_string_in_block}.to change{sub_string.occurrences_of_target_string}.by(3)
+    end
+
+    it 'finds "abab" twice (skips overlap) in the string "abababab"' do
+      sub_string.instance_variable_set(:@block, 'abababab')
+      sub_string.instance_variable_set(:@target_string, 'abab')
+
+      expect{sub_string.find_target_string_in_block}.to change{sub_string.occurrences_of_target_string}.by(2)
+    end
+
     it 'finds the string "horse" at the start and end of the string' do
       sub_string.instance_variable_set(:@block, 'horseljnsiuegnrlisengresohorse')
       sub_string.instance_variable_set(:@target_string, 'horse')
@@ -86,43 +107,53 @@ RSpec.describe SubString do
       allow(File).to receive(:open).and_return(fake_file)
     end
 
-    context 'finds goose in the first block' do
-      let(:target_string) { 'goose' }
-      let(:fake_file) { StringIO.new('goose678901234567890') }
+    context 'finds horse in the first block' do
+      let(:target_string) { 'horse' }
+      let(:fake_file) { StringIO.new('horse678901234567890') }
       subject { sub_string.call }
 
       it { is_expected.to eq(1) }
     end
 
-    context 'finds goose in the second block' do
-      let(:target_string) { 'goose' }
-      let(:fake_file) { StringIO.new('1234567890goose67890') }
+    context 'finds horse in the second block' do
+      let(:target_string) { 'horse' }
+      let(:fake_file) { StringIO.new('1234567890horse67890') }
       subject { sub_string.call }
 
       it { is_expected.to eq(1) }
     end
 
-    context 'finds goose in overlapping blocks' do
-      let(:target_string) { 'goose' }
-      let(:fake_file) { StringIO.new('12345678goose4567890') }
+    context 'finds horse at the end of the second block' do
+      let(:target_string) { 'horse' }
+      let(:fake_file) { StringIO.new('123456789012345horse') }
       subject { sub_string.call }
 
       it { is_expected.to eq(1) }
     end
-  end
 
-  describe '#string_matches?' do
-    #it 'finds substrings that are there' do
-    #  expect(sub_string.string_matches?('1234567890', 0, '1234')).to be true
-    #  expect(sub_string.string_matches?('1234567890', 1, '234')).to be true
-    #  expect(sub_string.string_matches?('1234567890', 7, '890')).to be true
-    #end
+    context 'finds horse in a short final block' do
+      let(:target_string) { 'horse' }
+      let(:fake_file) { StringIO.new('123horse9012345678901horse') }
+      subject { sub_string.call }
 
-    #it 'doesn\'t find substrings that aren\'t there' do
-    #  expect(sub_string.string_matches?('1234567890', 1, '1234')).to be false
-    #  expect(sub_string.string_matches?('1234567890', 0, '234')).to be false
-    #  expect(sub_string.string_matches?('1234567890', 5, '890')).to be false
-    #end
+      it { is_expected.to eq(2) }
+    end
+
+    context 'finds horse in a short final overlapping block' do
+      let(:target_string) { 'horse' }
+      let(:fake_file) { StringIO.new('1234567890123456horse') }
+      subject { sub_string.call }
+
+      it { is_expected.to eq(1) }
+    end
+
+    context 'finds horse in overlapping blocks' do
+      let(:target_string) { 'horse' }
+      let(:fake_file) { StringIO.new('12345678horse4567890') }
+      subject { sub_string.call }
+
+      it { is_expected.to eq(1) }
+    end
   end
 
   describe '#smaller_parts' do
